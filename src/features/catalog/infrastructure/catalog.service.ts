@@ -1,5 +1,10 @@
 import { createClient } from "@/utils/supabase/server"
 import { CatalogProduct } from "../domain/product"
+import { Database } from "@/types/database.types"
+
+type ProductRow = Database["public"]["Tables"]["products"]["Row"]
+type ProductVariantRow = Database["public"]["Tables"]["product_variants"]["Row"]
+type ProductWithVariants = ProductRow & { product_variants: ProductVariantRow[] | null }
 
 export async function getCatalogProducts(): Promise<CatalogProduct[]> {
     const supabase = await createClient()
@@ -18,15 +23,20 @@ export async function getCatalogProducts(): Promise<CatalogProduct[]> {
         return []
     }
 
-    return (data as any[]).map(product => {
-        const variants = product.product_variants || []
-        const activeVariants = variants.filter((v: any) => v.is_active)
+    return ((data ?? []) as ProductWithVariants[]).map((product) => {
+        const variants = product.product_variants ?? []
+        const activeVariants = variants.filter((variant) => variant.is_active)
+        const gender =
+            product.gender === "hombre" || product.gender === "mujer" || product.gender === "unisex"
+                ? product.gender
+                : "unisex"
         const minPrice = activeVariants.length > 0
-            ? Math.min(...activeVariants.map((v: any) => v.price))
+            ? Math.min(...activeVariants.map((variant) => variant.price))
             : 0
 
         return {
             ...product,
+            gender,
             variants: activeVariants,
             minPrice
         }

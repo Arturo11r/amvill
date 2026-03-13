@@ -1,5 +1,20 @@
 import { createClient } from "@/utils/supabase/server"
 import { Order } from "../domain/order"
+import { Database } from "@/types/database.types"
+
+type OrderRow = Database["public"]["Tables"]["orders"]["Row"]
+type OrderItemRow = Database["public"]["Tables"]["order_items"]["Row"]
+
+interface OrderWithItems extends OrderRow {
+    order_items?: Array<OrderItemRow & {
+        product_variants?: {
+            products?: {
+                name: string
+                brand: string
+            } | null
+        } | null
+    }> | null
+}
 
 export async function getUserOrders(): Promise<Order[]> {
     const supabase = await createClient()
@@ -27,11 +42,19 @@ export async function getUserOrders(): Promise<Order[]> {
         return []
     }
 
-    return (data as any[]).map(order => ({
-        ...order,
-        items: order.order_items?.map((item: any) => ({
-            ...item,
-            product: item.product_variants?.products
-        }))
-    }))
+    return ((data ?? []) as OrderWithItems[]).map((order) => {
+        const status =
+            order.status === "pending" || order.status === "confirmed" || order.status === "cancelled"
+                ? order.status
+                : "pending"
+
+        return {
+            ...order,
+            status,
+            items: order.order_items?.map((item) => ({
+                ...item,
+                product: item.product_variants?.products ?? undefined,
+            })),
+        }
+    })
 }

@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Menu, ShoppingCart, User, Search, LogOut, Sun, Moon } from "lucide-react"
+import Image from "next/image"
+import { Menu, ShoppingCart, User, LogOut, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCartStore } from "@/store/useCartStore"
 import { createClient } from "@/utils/supabase/client"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
+import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 export function Navbar() {
     const itemCount = useCartStore((state) => state.getItemCount())
     const [isOpen, setIsOpen] = useState(false)
     const { theme, setTheme } = useTheme()
-    const [user, setUser] = useState<any>(null)
+    const [user, setUser] = useState<SupabaseUser | null>(null)
     const supabase = createClient()
     const router = useRouter()
 
@@ -45,9 +47,11 @@ export function Navbar() {
                         <Menu className="h-6 w-6" />
                     </Button>
                     <Link href="/" className="flex items-center gap-2">
-                        <img
+                        <Image
                             src="/amvil.png"
                             alt="AMVILL Logo"
+                            width={120}
+                            height={40}
                             className="h-10 w-auto object-contain"
                         />
                     </Link>

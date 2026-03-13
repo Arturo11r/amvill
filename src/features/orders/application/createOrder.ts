@@ -7,6 +7,15 @@ import { Database } from "@/types/database.types"
 type OrderInsert = Database['public']['Tables']['orders']['Insert']
 type OrderItemInsert = Database['public']['Tables']['order_items']['Insert']
 
+interface OrderInsertResult {
+    data: { id: string } | null
+    error: { message: string } | null
+}
+
+interface OrderItemsInsertResult {
+    error: { message: string } | null
+}
+
 interface CreateOrderCustomerInfo {
     name: string
     phone: string
@@ -26,8 +35,13 @@ export async function createOrder(items: CartItem[], customerInfo: CreateOrderCu
         status: 'pending'
     }
 
-    const { data: order, error: orderError } = await (supabase
-        .from('orders') as any)
+    const ordersTable = supabase.from('orders') as unknown as {
+        insert: (values: OrderInsert) => {
+            select: (columns: string) => { single: () => Promise<OrderInsertResult> }
+        }
+    }
+
+    const { data: order, error: orderError } = await ordersTable
         .insert(newOrder)
         .select('id')
         .single()
@@ -43,9 +57,11 @@ export async function createOrder(items: CartItem[], customerInfo: CreateOrderCu
         unit_price: item.price
     }))
 
-    const { error: itemsError } = await (supabase
-        .from('order_items') as any)
-        .insert(orderItems)
+    const orderItemsTable = supabase.from('order_items') as unknown as {
+        insert: (values: OrderItemInsert[]) => Promise<OrderItemsInsertResult>
+    }
+
+    const { error: itemsError } = await orderItemsTable.insert(orderItems)
 
     if (itemsError) return { error: itemsError.message }
 
