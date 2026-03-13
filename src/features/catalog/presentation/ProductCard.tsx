@@ -24,7 +24,7 @@ export function ProductCard({ product }: ProductCardProps) {
         if (!selectedVariant) return
 
         addItem({
-            id: selectedVariant.id,
+            variantId: selectedVariant.id,
             productId: product.id,
             name: product.name,
             brand: product.brand,

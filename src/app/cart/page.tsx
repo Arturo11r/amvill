@@ -64,7 +64,7 @@ export default function CartPage() {
             <div className="grid lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-4">
                     {items.map((item) => (
-                        <Card key={item.id} className="glass-morphism overflow-hidden">
+                        <Card key={item.variantId} className="glass-morphism overflow-hidden">
                             <CardContent className="p-4 flex gap-4 items-center">
                                 <div className="relative h-20 w-20 flex-shrink-0 bg-muted rounded-md overflow-hidden">
                                     <Image src={item.image} alt={item.name} fill className="object-cover" />
@@ -82,7 +82,7 @@ export default function CartPage() {
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8"
-                                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                            onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
                                         >
                                             <Minus className="h-3 w-3" />
                                         </Button>
@@ -91,7 +91,7 @@ export default function CartPage() {
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8"
-                                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                            onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
                                         >
                                             <Plus className="h-3 w-3" />
                                         </Button>
@@ -101,7 +101,7 @@ export default function CartPage() {
                                         variant="ghost"
                                         size="icon"
                                         className="text-destructive hover:text-destructive/80"
-                                        onClick={() => removeItem(item.id)}
+                                        onClick={() => removeItem(item.variantId)}
                                     >
                                         <Trash2 className="h-5 w-5" />
                                     </Button>
@@ -135,7 +135,7 @@ export default function CartPage() {
                                 Crear tu pedido
                             </Button>
                             <p className="text-[10px] text-center text-muted-foreground">
-                                Deberás iniciar sesión para generar la orden de pedido.
+                                Puedes crear tu pedido como invitado o con tu cuenta.
                             </p>
                         </CardContent>
                     </Card>
