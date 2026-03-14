@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Plus, Trash, Image as ImageIcon, Edit } from "lucide-react"
+import { Plus, Trash, Image as ImageIcon } from "lucide-react"
 import { updateProduct } from "../application/updateProduct"
 import { toast } from "sonner"
 import {
@@ -35,22 +35,21 @@ interface EditProductDialogProps {
     onOpenChange: (open: boolean) => void
 }
 
+function getInitialVariants(product: CatalogProduct): Variant[] {
+    if (!product.variants || product.variants.length === 0) {
+        return [{ size_ml: "", price: "" }]
+    }
+
+    return product.variants.map((variant) => ({
+        size_ml: variant.size_ml.toString(),
+        price: variant.price.toString(),
+    }))
+}
+
 export function EditProductDialog({ product, open, onOpenChange }: EditProductDialogProps) {
     const [loading, setLoading] = useState(false)
-    const [variants, setVariants] = useState<Variant[]>([])
+    const [variants, setVariants] = useState<Variant[]>(() => getInitialVariants(product))
     const [imagePreview, setImagePreview] = useState<string | null>(product.image_url || null)
-
-    useEffect(() => {
-        if (product.variants) {
-            setVariants(product.variants.map(v => ({
-                size_ml: v.size_ml.toString(),
-                price: v.price.toString()
-            })))
-        } else {
-            setVariants([{ size_ml: "", price: "" }])
-        }
-        setImagePreview(product.image_url || null)
-    }, [product])
 
     const addVariant = () => {
         setVariants([...variants, { size_ml: "", price: "" }])

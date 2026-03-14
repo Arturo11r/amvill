@@ -65,6 +65,7 @@ export function AdminProductTable({ products }: AdminProductTableProps) {
 
             {editingProduct && (
                 <EditProductDialog
+                    key={editingProduct.id}
                     product={editingProduct}
                     open={isEditOpen}
                     onOpenChange={setIsEditOpen}

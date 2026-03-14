@@ -9,11 +9,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 
 import { toast } from "sonner"
 import { createClient } from "@/utils/supabase/client"
-import { useRouter } from "next/navigation"
 
 export function AuthForms() {
     const [loading, setLoading] = useState(false)
-    const router = useRouter()
     const supabase = createClient()
 
     const handleLogin = async (e: React.FormEvent) => {

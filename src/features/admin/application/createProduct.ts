@@ -2,6 +2,24 @@
 
 import { createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
+import { Database } from "@/types/database.types"
+
+type ProductInsert = Database["public"]["Tables"]["products"]["Insert"]
+type ProductVariantInsert = Database["public"]["Tables"]["product_variants"]["Insert"]
+
+interface FormVariant {
+    size_ml: string
+    price: string
+}
+
+interface ProductInsertResult {
+    data: { id: string } | null
+    error: { message: string } | null
+}
+
+interface VariantsInsertResult {
+    error: { message: string } | null
+}
 
 export async function createProduct(formData: FormData) {
     const supabase = await createClient()
@@ -20,7 +38,7 @@ export async function createProduct(formData: FormData) {
         const fileExt = imageFile.name.split('.').pop()
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
 
-        const { data: storageData, error: storageError } = await supabase.storage
+        const { error: storageError } = await supabase.storage
             .from('products')
             .upload(fileName, imageFile)
 
@@ -35,43 +53,62 @@ export async function createProduct(formData: FormData) {
     }
 
     // 2. Insert Product
-    const { data: product, error: productError } = await supabase
-        .from("products")
-        .insert({
-            name,
-            brand,
-            slug,
-            gender,
-            description,
-            image_url,
-            is_active: true,
-            sort_order: 0
-        } as any)
-        .select()
+    const productToInsert: ProductInsert = {
+        name,
+        brand,
+        slug,
+        gender,
+        description,
+        image_url,
+        is_active: true,
+        sort_order: 0,
+    }
+
+    const productsTable = supabase.from("products") as unknown as {
+        insert: (values: ProductInsert) => {
+            select: (columns: string) => { single: () => Promise<ProductInsertResult> }
+        }
+    }
+
+    const { data: product, error: productError } = await productsTable
+        .insert(productToInsert)
+        .select("id")
         .single()
 
     if (productError) {
         return { error: productError.message }
     }
 
-    const productObj = product as any
+    if (!product) {
+        return { error: "No se pudo crear el producto." }
+    }
 
     // 3. Insert Multiple Variants
     const variantsJson = formData.get("variants") as string
     if (variantsJson) {
         try {
-            const variants = JSON.parse(variantsJson)
+            const variants = JSON.parse(variantsJson) as unknown
             if (Array.isArray(variants) && variants.length > 0) {
-                const variantsToInsert = variants.map(v => ({
-                    product_id: productObj.id,
-                    size_ml: parseInt(v.size_ml),
-                    price: parseFloat(v.price),
-                    is_active: true
-                }))
+                const variantsToInsert: ProductVariantInsert[] = variants
+                    .filter(
+                        (variant): variant is FormVariant =>
+                            typeof variant === "object" &&
+                            variant !== null &&
+                            "size_ml" in variant &&
+                            "price" in variant
+                    )
+                    .map((variant) => ({
+                        product_id: product.id,
+                        size_ml: parseInt(variant.size_ml, 10),
+                        price: parseFloat(variant.price),
+                        is_active: true,
+                    }))
 
-                const { error: variantError } = await supabase
-                    .from("product_variants")
-                    .insert(variantsToInsert as any)
+                const variantError = variantsToInsert.length
+                    ? (await (supabase.from("product_variants") as unknown as {
+                        insert: (values: ProductVariantInsert[]) => Promise<VariantsInsertResult>
+                    }).insert(variantsToInsert)).error
+                    : null
 
                 if (variantError) {
                     console.error("Error creating variants:", variantError)
@@ -86,5 +123,5 @@ export async function createProduct(formData: FormData) {
     revalidatePath("/catalog")
     revalidatePath("/")
 
-    return { success: true, productId: productObj.id }
+    return { success: true, productId: product.id }
 }

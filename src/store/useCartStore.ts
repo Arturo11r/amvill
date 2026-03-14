@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 export interface CartItem {
-    id: string
+    variantId: string
     productId: string
     name: string
     brand: string
@@ -15,8 +15,8 @@ export interface CartItem {
 interface CartState {
     items: CartItem[]
     addItem: (item: CartItem) => void
-    removeItem: (itemId: string) => void
-    updateQuantity: (itemId: string, quantity: number) => void
+    removeItem: (variantId: string) => void
+    updateQuantity: (variantId: string, quantity: number) => void
     clearCart: () => void
     getTotal: () => number
     getItemCount: () => number
@@ -28,25 +28,25 @@ export const useCartStore = create<CartState>()(
             items: [],
             addItem: (item) => {
                 const items = get().items
-                const existingItem = items.find((i) => i.id === item.id)
+                const existingItem = items.find((i) => i.variantId === item.variantId)
 
                 if (existingItem) {
                     set({
                         items: items.map((i) =>
-                            i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
+                            i.variantId === item.variantId ? { ...i, quantity: i.quantity + item.quantity } : i
                         ),
                     })
                 } else {
                     set({ items: [...items, item] })
                 }
             },
-            removeItem: (itemId) => {
-                set({ items: get().items.filter((i) => i.id !== itemId) })
+            removeItem: (variantId) => {
+                set({ items: get().items.filter((i) => i.variantId !== variantId) })
             },
-            updateQuantity: (itemId, quantity) => {
+            updateQuantity: (variantId, quantity) => {
                 set({
                     items: get().items.map((i) =>
-                        i.id === itemId ? { ...i, quantity: Math.max(0, quantity) } : i
+                        i.variantId === variantId ? { ...i, quantity: Math.max(0, quantity) } : i
                     ),
                 })
             },
@@ -60,6 +60,22 @@ export const useCartStore = create<CartState>()(
         }),
         {
             name: 'amvill-cart-storage',
+            version: 2,
+            migrate: (persistedState: unknown) => {
+                const state = persistedState as { items?: Array<CartItem & { id?: string }> }
+
+                if (!state.items) {
+                    return { items: [] }
+                }
+
+                return {
+                    ...state,
+                    items: state.items.map((item) => ({
+                        ...item,
+                        variantId: item.variantId ?? item.id ?? '',
+                    })),
+                }
+            },
         }
     )
 )

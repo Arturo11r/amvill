@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -35,7 +36,9 @@ export default function AdminLoginPage() {
                 .eq('user_id', data.user.id)
                 .single()
 
-            if ((roleData as any)?.role === 'admin') {
+            const isAdmin = (roleData as { role?: string } | null)?.role === "admin"
+
+            if (isAdmin) {
                 toast.success("Sesión iniciada correctamente")
                 router.push("/amvill-panel-admin")
                 router.refresh()
@@ -52,9 +55,11 @@ export default function AdminLoginPage() {
             <Card className="w-full max-w-md glass-morphism border-amber-500/20 shadow-2xl">
                 <CardHeader className="text-center">
                     <div className="flex justify-center mb-4">
-                        <img
+                        <Image
                             src="/amvil.png"
                             alt="AMVILL Logo"
+                            width={128}
+                            height={64}
                             className="h-16 w-auto object-contain"
                         />
                     </div>
