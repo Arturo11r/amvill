@@ -19,19 +19,61 @@ interface OrderItemsInsertResult {
 interface CreateOrderCustomerInfo {
     name: string
     phone: string
-    email?: string
+    email: string | null
+    shippingAddress: string
+    notes?: string | null
+}
+
+function isFinitePositiveNumber(value: unknown) {
+    return typeof value === "number" && Number.isFinite(value) && value > 0
 }
 
 export async function createOrder(items: CartItem[], customerInfo: CreateOrderCustomerInfo) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
+    if (!Array.isArray(items) || items.length === 0) {
+        return { error: "El carrito no puede estar vacio." }
+    }
+
+    const invalidItem = items.some((item) => (
+        !item.variantId ||
+        !Number.isInteger(item.quantity) ||
+        item.quantity <= 0 ||
+        !isFinitePositiveNumber(item.price)
+    ))
+
+    if (invalidItem) {
+        return { error: "Los productos del carrito no son validos." }
+    }
+
+    const normalizedName = customerInfo.name.trim()
+    const normalizedPhone = customerInfo.phone.trim()
+    const normalizedEmail = customerInfo.email?.trim() || null
+    const normalizedAddress = customerInfo.shippingAddress.trim()
+
+    if (!normalizedName || !normalizedPhone || !normalizedAddress) {
+        return { error: "Faltan datos obligatorios para crear tu pedido." }
+    }
+
+    if (normalizedEmail && !/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
+        return { error: "El correo electronico no es valido." }
+    }
+
+    const normalizedNotes = [
+        `Direccion de envio: ${normalizedAddress}`,
+        customerInfo.notes?.trim(),
+    ]
+        .filter(Boolean)
+        .join("\n")
+
     // 1. Create the order
     const newOrder: OrderInsert = {
         user_id: user?.id ?? null,
-        customer_name: customerInfo.name,
-        customer_phone: customerInfo.phone,
-        customer_email: customerInfo.email || null,
+        customer_name: normalizedName,
+        customer_phone: normalizedPhone,
+        customer_email: normalizedEmail,
+        notes: normalizedNotes || null,
         status: 'pending'
     }
 

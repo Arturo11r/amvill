@@ -90,7 +90,7 @@ export function AddProductDialog() {
                     <Plus className="mr-2 h-4 w-4" /> Nuevo Producto
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] glass-morphism border-amber-500/20 max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[500px] border-amber-500/20 max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Añadir Nuevo Producto</DialogTitle>
                     <DialogDescription>

@@ -7,7 +7,7 @@ import { Menu, ShoppingCart, User, LogOut, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCartStore } from "@/store/useCartStore"
 import { createClient } from "@/utils/supabase/client"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 
@@ -18,8 +18,13 @@ export function Navbar() {
     const [user, setUser] = useState<SupabaseUser | null>(null)
     const supabase = createClient()
     const router = useRouter()
+    const pathname = usePathname()
 
     useEffect(() => {
+        if (pathname.startsWith('/amvill-panel-admin')) {
+            return
+        }
+
         const getUser = async () => {
             const { data: { user } } = await supabase.auth.getUser()
             setUser(user)
@@ -31,12 +36,16 @@ export function Navbar() {
         })
 
         return () => subscription.unsubscribe()
-    }, [supabase])
+    }, [pathname, supabase])
 
     const handleSignOut = async () => {
         await supabase.auth.signOut()
         router.refresh()
         router.push('/')
+    }
+
+    if (pathname.startsWith('/amvill-panel-admin')) {
+        return null
     }
 
     return (
