@@ -1,12 +1,18 @@
 import { createClient } from "@/utils/supabase/server"
 import { CatalogProduct } from "../domain/product"
 import { Database } from "@/types/database.types"
+import { hasSupabasePublicEnv } from "@/utils/supabase/env"
 
 type ProductRow = Database["public"]["Tables"]["products"]["Row"]
 type ProductVariantRow = Database["public"]["Tables"]["product_variants"]["Row"]
 type ProductWithVariants = ProductRow & { product_variants: ProductVariantRow[] | null }
 
 export async function getCatalogProducts(): Promise<CatalogProduct[]> {
+    if (!hasSupabasePublicEnv()) {
+        console.warn('Supabase env vars are missing. Returning empty catalog during prerender.')
+        return []
+    }
+
     const supabase = await createClient()
 
     const { data, error } = await supabase

@@ -32,7 +32,6 @@ export function AdminSidebarLayout({ children }: AdminSidebarLayoutProps) {
     const [isSigningOut, setIsSigningOut] = useState(false)
     const { resolvedTheme, setTheme } = useTheme()
     const router = useRouter()
-    const supabase = createClient()
 
     const toggleTheme = () => {
         setTheme(resolvedTheme === "dark" ? "light" : "dark")
@@ -40,6 +39,7 @@ export function AdminSidebarLayout({ children }: AdminSidebarLayoutProps) {
 
     const handleSignOut = async () => {
         setIsSigningOut(true)
+        const supabase = createClient()
 
         try {
             await supabase.auth.signOut()

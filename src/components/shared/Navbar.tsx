@@ -16,7 +16,6 @@ export function Navbar() {
     const [isOpen, setIsOpen] = useState(false)
     const { theme, setTheme } = useTheme()
     const [user, setUser] = useState<SupabaseUser | null>(null)
-    const supabase = createClient()
     const router = useRouter()
     const pathname = usePathname()
 
@@ -24,6 +23,8 @@ export function Navbar() {
         if (pathname.startsWith('/amvill-panel-admin')) {
             return
         }
+
+        const supabase = createClient()
 
         const getUser = async () => {
             const { data: { user } } = await supabase.auth.getUser()
@@ -36,9 +37,10 @@ export function Navbar() {
         })
 
         return () => subscription.unsubscribe()
-    }, [pathname, supabase])
+    }, [pathname])
 
     const handleSignOut = async () => {
+        const supabase = createClient()
         await supabase.auth.signOut()
         router.refresh()
         router.push('/')

@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  env: {
+    AMVILL_SUPABASE_URL: process.env.AMVILL_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL,
+    AMVILL_SUPABASE_ANON_TOKEN:
+      process.env.AMVILL_SUPABASE_ANON_TOKEN ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  },
   images: {
     remotePatterns: [
       {

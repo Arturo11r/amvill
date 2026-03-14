@@ -15,11 +15,11 @@ export default function AdminLoginPage() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const router = useRouter()
-    const supabase = createClient()
 
     const handleAdminLogin = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
+        const supabase = createClient()
 
         const { data, error } = await supabase.auth.signInWithPassword({
             email,

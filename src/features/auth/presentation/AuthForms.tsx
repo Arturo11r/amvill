@@ -12,11 +12,11 @@ import { createClient } from "@/utils/supabase/client"
 
 export function AuthForms() {
     const [loading, setLoading] = useState(false)
-    const supabase = createClient()
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
+        const supabase = createClient()
         const formData = new FormData(e.currentTarget as HTMLFormElement)
         const email = formData.get("email") as string
 
@@ -38,6 +38,7 @@ export function AuthForms() {
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
+        const supabase = createClient()
         // Simplified: we use magic links for both in this demo
         const formData = new FormData(e.currentTarget as HTMLFormElement)
         const email = formData.get("reg-email") as string
